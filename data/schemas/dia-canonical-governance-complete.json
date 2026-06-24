@@ -1,6 +1,6 @@
 {
-  "$schema": "https://json-schema.org",
-  "id": "https://owasp.org",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "https://owasp.org/deterministic-isomorphism-architecture",
   "title": "DeterministicIsomorphismArchitectureCompleteGovernanceArtifact",
   "description": "An absolute end-to-end machine-readable validation contract integrating design-time policies, PQC-secured runtime snapshots, temporal admissibility oracles, and bilateral multi-attestation receipts.",
   "type": "object",
@@ -52,7 +52,14 @@
     "layer2CanonicalRuntimeEnforcement": {
       "type": "object",
       "description": "Run-time deterministic boundary and state-transition enforcement engine powered by dtpe-canonical-runtime mechanics.",
-      "required": ["enforcementTopology", "structuralBoundaries", "bijectiveStateTransitions", "pqcConfiguration", "canonicalSnapshotEngine"],
+      "required": [
+        "enforcementTopology", 
+        "structuralBoundaries", 
+        "bijectiveStateTransitions", 
+        "pqcConfiguration", 
+        "canonicalSnapshotEngine",
+        "dtpeEngineConsensus"
+      ],
       "properties": {
         "enforcementTopology": {
           "type": "object",
@@ -63,6 +70,27 @@
               "enum": ["ImmediateExecutionHalt", "StatePurgeAndDrop", "FailClosedCircuitBreak"]
             },
             "strictModeEnforced": { "type": "boolean", "default": true }
+          }
+        },
+        "dtpeEngineConsensus": {
+          "type": "object",
+          "description": "Configures N-version parallel runtime validation inside the dtpe-canonical-runtime to block host-level exploitation.",
+          "required": ["engineRedundancyEnforced", "requiredConsensusThreshold", "mismatchFailSafeRouting"],
+          "properties": {
+            "engineRedundancyEnforced": { 
+              "type": "boolean", 
+              "default": true 
+            },
+            "requiredConsensusThreshold": { 
+              "type": "string", 
+              "enum": ["AbsoluteUnanimity", "MajorityVote"], 
+              "default": "AbsoluteUnanimity" 
+            },
+            "mismatchFailSafeRouting": {
+              "type": "string",
+              "enum": ["ImmediateFailClosed", "StateLiquidateAndHalt"],
+              "default": "ImmediateFailClosed"
+            }
           }
         },
         "pqcConfiguration": {
@@ -157,10 +185,24 @@
         "semanticIntentDrift": {
           "type": "object",
           "description": "Monitors multi-turn conversation and objective posture to halt subtle instruction bleeding.",
-          "required": ["maxDriftThresholdScore", "driftEvaluationWindowTurns"],
+          "required": ["maxDriftThresholdScore", "driftEvaluationWindowTurns", "cumulativeSessionDriftCeiling"],
           "properties": {
-            "maxDriftThresholdScore": { "type": "number", "minimum": 0.0, "maximum": 1.0, "description": "Maximum mathematical cosine distance allowed before forcing an authority collapse." },
-            "driftEvaluationWindowTurns": { "type": "integer", "minimum": 1 }
+            "maxDriftThresholdScore": { 
+              "type": "number", 
+              "minimum": 0.0, 
+              "maximum": 1.0, 
+              "description": "Maximum mathematical cosine distance allowed per conversational window evaluation before forcing an authority collapse." 
+            },
+            "driftEvaluationWindowTurns": { 
+              "type": "integer", 
+              "minimum": 1 
+            },
+            "cumulativeSessionDriftCeiling": {
+              "type": "number",
+              "minimum": 0.0,
+              "maximum": 5.0,
+              "description": "The global aggregated limit for all semantic vector movements over the complete multi-turn lifecycle of the agent execution instance."
+            }
           }
         }
       }
@@ -180,9 +222,18 @@
         },
         "authorityRecomputationRoutine": {
           "type": "object",
-          "required": ["evaluationEngine", "signatureVerificationRequired", "expressionSource"],
+          "required": ["evaluationEngines", "signatureVerificationRequired", "expressionSource"],
           "properties": {
-            "evaluationEngine": { "type": "string", "enum": ["WebAssemblyRuntime", "NativeCELParser", "DeterministicStateAutomaton"] },
+            "evaluationEngines": { 
+              "type": "array",
+              "minItems": 2,
+              "uniqueItems": true,
+              "description": "Mandates multiple isolated evaluation runtimes to run execution consensus, preventing a single parsing engine compromise from breaking the trust boundary.",
+              "items": {
+                "type": "string",
+                "enum": ["WebAssemblyRuntime", "NativeCELParser", "DeterministicStateAutomaton"]
+              }
+            },
             "signatureVerificationRequired": { "type": "boolean" },
             "expressionSource": { "type": "string" }
           }
